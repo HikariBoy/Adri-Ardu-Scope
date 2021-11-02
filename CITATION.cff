@@ -1,0 +1,19 @@
+abstract: "Creates the basic functionality of an Oscilloscope (plus Spectrum Analyser and Cross-correlation scope) from a very low cost Arduino to allow the ability to explore signals, collect data and complete high-school/University laboratories even when students are completing portions of their studies remotely."
+authors: 
+  -
+    affiliation: "The University of Western Australia"
+    family-names: Keating
+    given-names: Adrian
+    orcid: https://orcid.org/0000-0003-4284-5653
+keywords: 
+  - Arduino
+  - Oscilliscope
+  - "Spectrum Analyser"
+  - "Signals and Systems"
+  - "Python 3"
+  - Education
+  - Engineering
+license: "GNU GPLv3"
+message: "If you use this Adri/Ardu-Scope (either the .ino files or .py interface), please cite it as below."
+title: "Adri/Ardu-Scope"
+date-released: 2021-2-11
