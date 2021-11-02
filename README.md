@@ -10,7 +10,7 @@
    <img src="images\UWA-Full-Ver-CMYK3.png" alt="UWA logo"  align="right" width="150"/><br>
 On many occasions you might need a [oscilloscope](https://en.wikipedia.org/wiki/Oscilloscope) or spectrum analyser.  The cost of USB scopes has significantly dropped over the last few years, allowing me for example to use the [2-channel, 10 MHz pico-scope 2000 series](https://www.picotech.com/oscilloscope/2000/picoscope-2000-overview) in my teaching at [The University of Western Australia](https://www.uwa.edu.au/) - this is as a excellent tool to looking and generating signals and giving students a face-to-face demonstration of data collection.   <b>But what if the cost and specifications of even a USB scope like this is beyond that required.</b> <br>
 This work considered how to make an [oscilloscope](https://en.wikipedia.org/wiki/Oscilloscope) and [spectrum analyser](https://en.wikipedia.org/wiki/Spectrum_analyzer) that could sample signals at around 153 kHz, more than adequate for audio, accelerometer, vibration and ultrasonic (40 kHz) investigations.  The hope here was to be able to create University level laboratories for our students who are remote (isolated by COVID), to get hands on, practical experience with signals and [time-series](https://en.wikipedia.org/wiki/Time_series) data collection.  All that's required is a ~$5 Arduino and the software tools on this site to create a very practical learning environment.  If you try this tool and think it useful, please let me know and where used/publicised, please promote and cite the project in any published work (see link on this site).   
-Features of the [AdriArduScope.py](AdriArduScope.py) interface include: <img src="images\About.png" alt="About"  align="right" width="350"/><br>
+Features of the [AdriArduScope.py](AdriArduScope.py) interface include: <img src="images\About.png" alt="About"  align="right" width="550"/><br>
 * Two (2) channels supported, allowing (sequential) display of both channels
 * High speed update to the display interface allows "real-time" interaction with the signals being received
 * Sampling at up to 153 kHz - the sampling rate (display range) can be changed to allow sampling over many seconds
@@ -43,17 +43,17 @@ By default the Adri/Ardu-scope is set to send data in binary format (as this all
  ## Screen Shots
 
  <span><div style="float: left  color: blue font-style: italic">
- <img src="images\ScopeImage.png" alt="Steps 1 and 2"  align="right" width="500"/><br></div> </span>
+ <img src="images\ScopeImage.PNG" alt="Steps 1 and 2"  align="right" width="500"/><br></div> </span>
   <p></p><span> <figcaption > <I><b>Figure 1:</b>Screen shot from Adri/Ardu-Scope when in Oscilliscope mode. The analogue signal received by the [HR-S04 Ultrasonic sensor](https://core-electronics.com.au/tutorials/how-to-use-ultrasonic-sensors.html) obtained by direct connection to [Pin 7 of the LM324 in the circuit](http://www.pcserviceselectronics.co.uk/arduino/Ultrasonic/HC-SR04-cct.pdf) </I> </figcaption> </span><br>
 <br>
 
 <span><div style="float: left  color: blue font-style: italic">
-<img src="images\SpectrumImage.png" alt="Steps 1 and 2"  align="right" width="500"/><br></div> </span>
+<img src="images\SpectrumImage.PNG" alt="Steps 1 and 2"  align="right" width="500"/><br></div> </span>
  <p></p><span> <figcaption > <I><b>Figure 2:</b>Screen shot from Adri/Ardu-Scope when in Spectrum mode. Here the center frequency of the 40 kHz  [HR-S04 Ultrasonic sensor](https://core-electronics.com.au/tutorials/how-to-use-ultrasonic-sensors.html) can be seen.</I> </figcaption> </span><br>
 <br>
 
 <span><div style="float: left  color: blue font-style: italic">
-<img src="images\CrossCorrelationImage.png" alt="Steps 1 and 2"  align="right" width="500"/><br></div> </span>
+<img src="images\CrossCorrelationImage.PNG" alt="Steps 1 and 2"  align="right" width="500"/><br></div> </span>
  <p></p><span> <figcaption > <I><b>Figure 3:</b>Screen shot from Adri/Ardu-Scope when in Cross-Correlation mode. Here the data in Figure 3 was stored in memory (after recording it in AC mode), then the Cross-corelation function activated and the absolute option (ABS) set</I> </figcaption> </span><br>
 <br>
 
