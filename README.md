@@ -3,8 +3,10 @@
 
  ## QuickStart
   Follow these steps to get up and runnign with with Adri/Ardu-Scope Quickly:
-  1. *Upload the [AdriArduScope.ino](AdriArduScope.ino) file to your Arduino.* Use your favorite upload tool, most likely the [Arudino IDE](https://www.arduino.cc/en/software).  Select the type or Arduino - this has been tested on a Nano, Uno and Mega
-  2. *Download the remaining files (.py file and png files) to a single directory.* Run under python 3 - the only dependency required is matplotlib.  [Install matplotlib](https://matplotlib.org/stable/users/installing.html) appropriately for either conda or pip versions.  At this time, executables for Windows and MACs have not been produced but may be in the future.
+  * Select the Green CODE button (top right) and download ZIP.  Once downloaded, unzip the files to a folder
+  * Upload the [AdriArduScope.ino](AdriArduScope.ino) file to your Arduino.* Use your favorite upload tool, most likely the [Arudino IDE](https://www.arduino.cc/en/software).  Select the type or Arduino - this has been tested on a Nano, Uno and Mega
+  * Close the Arduino IDE/Serial Monitor and with the arduino plugged in, run [AdriArduScope.py](AdriArduScope.py) under python 3 - the only dependency required is matplotlib.  [Install matplotlib](https://matplotlib.org/stable/users/installing.html) appropriately for either conda or pip versions.  At this time, executables for Windows and MACs have not been produced but may be in the future.
+  * the ports used for Channel 1 and Channel 2 are arduino analogue input A0 and A1, respectively.  Just touching once of these ports, you should be able to see oscillations on the Adri/Ardu-Scope at 50Hz (Australia) or 60 Hz in other areas of the world.
 
   ## Motivation
    <img src="images\UWA-Full-Ver-CMYK3.png" alt="UWA logo"  align="right" width="150"/><br>
