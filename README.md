@@ -21,25 +21,6 @@ Features of the [AdriArduScope.py](AdriArduScope.py) interface include: <img src
 * Oscilloscope, Spectrum analyser and Cross-correlation analyser - The cross correlation analyser works in two modes: In a screen shot is saved to memory, the cross-correlation of the signal is obtained with the stored memory.  If the scope if setup to acquire data from both channel 1 and channel 2, the cross-correlation can be performed between Channel 1 &2.
 
 
- ## Testing:  
- If any of the above steps didn't work, or you want to use the Arduino to stream ADC data without the python interface you can try the following.  After Step 1 above you can test Adri/Ardu-Scope by opening up a serial monintor (again from the Arduino IDE).  The I/O uses a serial rate of 115200 baud which must be set for valid data to be read over the serial monitor.  From the serial monitor screen type "?" to see the help screen with most functions described.  The help screen should show the following:
- ArduinoScope - By Adrian Keating (C) 2021
- * Command Set (use either upper or lower case, end with CR):
- * ? - Help [?]
- * A - Set [A]SCII output (long)
- * B - Set [B]INARY output (short)
- * Nnn - [N]umber of Samples nn=to 1 to 1024
- * F - Sampling [F]requency: 1=615kHz,2=307kHz,3=153kHz,4=76.8kHz(default),5=38.4kHz,6=19.27=9.6kHz
- * H - [H]eader
- * Cn - [C]channel 1<n<6
- * Dn - Trigger [D]elay 0<n<32768
- * R[nn] - [R]epeat Capture, infinite or optional nn<256
- * X - Stop Capture [X]
- * V - [V]erbose
- * S - [S]ilent)
-
-By default the Adri/Ardu-scope is set to send data in binary format (as this allows faster data update).  To understand the data returned by the Adri/Ardu-scope from the serial monitor, send the "A" command (upper or lower case) to send the data in human readable [ASCII](https://www.asciitable.com/) form.
-
  ## Screen Shots
 
  <span><div style="float: left  color: blue font-style: italic">
@@ -56,6 +37,25 @@ By default the Adri/Ardu-scope is set to send data in binary format (as this all
 <img src="images\CrossCorrelationImage.PNG" alt="Steps 1 and 2"  align="right" width="500"/><br></div> </span>
  <p></p><span> <figcaption > <I><b>Figure 3:</b>Screen shot from Adri/Ardu-Scope when in Cross-Correlation mode. Here the data in Figure 3 was stored in memory (after recording it in AC mode), then the Cross-corelation function activated and the absolute option (ABS) set</I> </figcaption> </span><br>
 <br>
+
+## Testing:  
+If any of the above steps didn't work, or you want to use the Arduino to stream ADC data without the python interface you can try the following.  After Step 1 above you can test Adri/Ardu-Scope by opening up a serial monintor (again from the Arduino IDE).  The I/O uses a serial rate of 115200 baud which must be set for valid data to be read over the serial monitor.  From the serial monitor screen type "?" to see the help screen with most functions described.  The help screen should show the following:
+ArduinoScope - By Adrian Keating (C) 2021
+* Command Set (use either upper or lower case, end with CR):
+* ? - Help [?]
+* A - Set [A]SCII output (long)
+* B - Set [B]INARY output (short)
+* Nnn - [N]umber of Samples nn=to 1 to 1024
+* F - Sampling [F]requency: 1=615kHz,2=307kHz,3=153kHz,4=76.8kHz(default),5=38.4kHz,6=19.27=9.6kHz
+* H - [H]eader
+* Cn - [C]channel 1<n<6
+* Dn - Trigger [D]elay 0<n<32768
+* R[nn] - [R]epeat Capture, infinite or optional nn<256
+* X - Stop Capture [X]
+* V - [V]erbose
+* S - [S]ilent)
+
+By default the Adri/Ardu-scope is set to send data in binary format (as this allows faster data update).  To understand the data returned by the Adri/Ardu-scope from the serial monitor, send the "A" command (upper or lower case) to send the data in human readable [ASCII](https://www.asciitable.com/) form.
 
 
  ## Source
