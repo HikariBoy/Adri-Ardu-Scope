@@ -37,7 +37,7 @@ Features of the [AdriArduScope.py](AdriArduScope.py) interface include: <img src
 
 
 <img src="images\CrossCorrelationImage.PNG" alt="Steps 1 and 2"  align="right" width="500"/><br></div> </span>
-  <I><b>Figure 3:</b>Screen shot from Adri/Ardu-Scope when in Cross-Correlation mode. Here the data in Figure 3 was stored in memory (after recording it in AC mode), then the Cross-corelation function activated and the absolute option (ABS) set</I> 
+  <I><b>Figure 3:</b>Screen shot from Adri/Ardu-Scope when in Cross-Correlation mode. Here the data in Figure 3 was stored in memory (after recording it in AC mode), then the Cross-corelation function activated and the absolute option (ABS) set</I>
 <br>
 
 ## Testing:  
@@ -63,5 +63,5 @@ By default the Adri/Ardu-scope is set to send data in binary format (as this all
  ## Source
  The source code [AdriArduScope.py](AdriArduScope.py) was created under python 3.7.10.
 
- ##Issues:
-   the Rubric cannot contain any spaces - this needs to be fixed
+## Issues
+  At high sample rates, only the top 8 bits are captured, so the amplitude resolution is lowered.  At slower data rates, this reverts back to 10 bits.  However in binary transmission I allow of 1024bytes to be sent.  while I have compressed the bits into a continuous bit stream, this still means only 1024*(8/10)~ 819 samples are actually take each scan at lower data rates.  This needs to be fixed
