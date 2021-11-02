@@ -25,19 +25,19 @@ Features of the [AdriArduScope.py](AdriArduScope.py) interface include: <img src
 
  ## Screen Shots
 
- <span><div style="float: left  color: blue font-style: italic">
+
  <img src="images\ScopeImage.PNG" alt="Steps 1 and 2"  align="right" width="500"/><br></div> </span>
-  <p></p><span> <figcaption > <I><b>Figure 1:</b>Screen shot from Adri/Ardu-Scope when in Oscilliscope mode.  </I> </figcaption> The images shows the analogue signal received by the [HR-S04 Ultrasonic sensor](https://core-electronics.com.au/tutorials/how-to-use-ultrasonic-sensors.html) obtained by direct connection to [Pin 7 of the LM324 in the circuit](http://www.pcserviceselectronics.co.uk/arduino/Ultrasonic/HC-SR04-cct.pdf) </span><br>
+  <p></p><span>   <I><b>Figure 1:</b>Screen shot from Adri/Ardu-Scope when in Oscilliscope mode.   The images shows the analogue signal received by the [HR-S04 Ultrasonic sensor](https://core-electronics.com.au/tutorials/how-to-use-ultrasonic-sensors.html) obtained by direct connection to [Pin 7 of the LM324 in the circuit](http://www.pcserviceselectronics.co.uk/arduino/Ultrasonic/HC-SR04-cct.pdf) </I>
 <br>
 
-<span><div style="float: left  color: blue font-style: italic">
+
 <img src="images\SpectrumImage.PNG" alt="Steps 1 and 2"  align="right" width="500"/><br></div> </span>
- <p></p><span> <figcaption > <I><b>Figure 2:</b>Screen shot from Adri/Ardu-Scope when in Spectrum mode. </I> </figcaption> Here the center frequency of the 40 kHz  [HR-S04 Ultrasonic sensor](https://core-electronics.com.au/tutorials/how-to-use-ultrasonic-sensors.html) can be seen. </span><br>
+  <I><b>Figure 2:</b>Screen shot from Adri/Ardu-Scope when in Spectrum mode.   Here the center frequency of the 40 kHz  [HR-S04 Ultrasonic sensor](https://core-electronics.com.au/tutorials/how-to-use-ultrasonic-sensors.html) can be seen. </I>  
 <br>
 
-<span><div style="float: left  color: blue font-style: italic">
+
 <img src="images\CrossCorrelationImage.PNG" alt="Steps 1 and 2"  align="right" width="500"/><br></div> </span>
- <p></p><span> <figcaption > <I><b>Figure 3:</b>Screen shot from Adri/Ardu-Scope when in Cross-Correlation mode. Here the data in Figure 3 was stored in memory (after recording it in AC mode), then the Cross-corelation function activated and the absolute option (ABS) set</I> </figcaption> </span><br>
+  <I><b>Figure 3:</b>Screen shot from Adri/Ardu-Scope when in Cross-Correlation mode. Here the data in Figure 3 was stored in memory (after recording it in AC mode), then the Cross-corelation function activated and the absolute option (ABS) set</I> 
 <br>
 
 ## Testing:  
