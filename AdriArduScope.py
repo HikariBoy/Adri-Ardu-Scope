@@ -306,7 +306,7 @@ class panel:
         "Nano, with less that 2k of free space. This can allow students the ability to explore signals, collect data and "
         "complete laboratories even when they are completing portions of their studies remotely.")
 
-        self.ABOUT_IMG = mpimg.imread(r'images\About.png')
+        self.ABOUT_IMG = mpimg.imread(ospath.join('images','About.png'))
         
         self.ind = 3
         #self.ch=1
@@ -971,7 +971,7 @@ if __name__ == "__main__":
     Vmax=5 # Vref of Arduino
     plt.ion() # turn on interactive mode
     plt.rcParams['toolbar'] = 'None'
-    UWA_LOGO = mpimg.imread(r'images\UWA-Full-Ver-CMYK3.png')
+    UWA_LOGO = mpimg.imread(ospath.join('images','UWA-Full-Ver-CMYK3.png'))
 
         
     frontpanel=panel()
