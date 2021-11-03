@@ -65,3 +65,4 @@ By default the Adri/Ardu-scope is set to send data in binary format (as this all
 
 ## Issues
   At high sample rates, only the top 8 bits are captured, so the amplitude resolution is lowered.  At slower data rates, this reverts back to 10 bits.  However in binary transmission I allow of 1024bytes to be sent.  while I have compressed the bits into a continuous bit stream, this still means only 1024*(8/10)~ 819 samples are actually take each scan at lower data rates.  This needs to be fixed
+  Need to work on advanced triggering including 1) manual (single shot) trigger and externally driven triggering
