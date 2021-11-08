@@ -1,0 +1,18 @@
+﻿TY  - DBASE
+AD  - The University of Western Australia, School of Engineering, Department of Mechanical Engineering
+AU  - Keating, Adrian
+CY  - https://github.com/HikariBoy/Adri-Ardu-Scope
+DB  - https://github.com/HikariBoy/Adri-Ardu-Scope
+DP  - https://github.com
+ET  - 2021-2-11
+KW  - Arduino, Oscilliscope,Spectrum Analyser, Signals and Systems, Python 3, Education,Engineering
+LA  - English
+M3  - Educational Tool
+PB  - https://github.com
+PY  - 2021
+RN  - "Creates the basic functionality of an Oscilloscope (plus Spectrum Analyser and Cross-correlation scope) from a very low cost Arduino to allow the ability to explore signals, collect data and complete high-school/University laboratories even when students are completing portions of their studies remotely."
+TI  - Adri/Ardu-Scope
+UR  - https://github.com/HikariBoy/Adri-Ardu-Scope
+ID  - 68
+ER  - 
+
