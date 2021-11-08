@@ -945,7 +945,7 @@ def selectFromDict(options, name):
     print('Select a ' + name + ':')
     for optionName in options:
         index = index + 1
-        indexValidList.extend([options[optionName]])
+        indexValidList.extend([optionName])
         print(str(index) + ') ' + optionName)
     inputValid = False
     while not inputValid:
@@ -979,7 +979,7 @@ if __name__ == "__main__":
     
     Portslist= findSerialPorts.serial_ports()
     #print('USBs=',Portslist)
-    USBdev=[s for s in Portslist if 'COM' in s] 
+    USBdev=[s for s in Portslist if ('COM' in s) or ('ACM' in s)] 
     #print('USBs=',USBdev,len(USBdev))
     options = {}
     if(len(USBdev)==0):
