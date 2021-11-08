@@ -4,7 +4,7 @@
  ## QuickStart
   Follow these steps to get up and running with with Adri/Ardu-Scope quickly:
   * Select the Green CODE button (top right) and download ZIP.  Once downloaded, unzip the files to a folder
-  * Upload the [AdriArduScope.ino](AdriArduScope\AdriArduScope.ino) file to your Arduino.  Use your favorite upload tool, most likely the [Arudino IDE](https://www.arduino.cc/en/software).  Select the type or Arduino - this has been tested on a Nano, Uno and Mega
+  * Upload the [AdriArduScope.ino](AdriArduScope/AdriArduScope.ino) file to your Arduino.  Use your favorite upload tool, most likely the [Arudino IDE](https://www.arduino.cc/en/software).  Select the type or Arduino - this has been tested on a Nano, Uno and Mega
   * Close the Arduino IDE/Serial Monitor and with the Arduino plugged in, run [AdriArduScope.py](AdriArduScope.py) under python 3 - the only dependency required is matplotlib.  [Install matplotlib](https://matplotlib.org/stable/users/installing.html) appropriately for either conda or pip versions.  At this time, executables for Windows and MACs have not been produced but may be in the future.
   * The ports used for Channel 1 and Channel 2 are Arduino analogue input A0 and A1, respectively.  Just touching once of these ports, you should be able to see oscillations on the Adri/Ardu-Scope at 50Hz (Australia) or 60 Hz in other areas of the world.
 
