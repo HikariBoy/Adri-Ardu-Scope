@@ -33,7 +33,7 @@ Features of the [AdriArduScope.py](AdriArduScope.py) interface include: <img src
 
  <img src="images\ScopeImage.PNG" alt="Steps 1 and 2"  align="right" width="500"/><br></div> </span>
   <p></p><span>   <I><b>Figure 1:</b>Screen shot from Adri/Ardu-Scope when in Oscilliscope mode.   The images shows the analogue signal received by the [HR-S04 Ultrasonic sensor](https://core-electronics.com.au/tutorials/how-to-use-ultrasonic-sensors.html) obtained by direct connection to [Pin 7 of the LM324 in the circuit](http://www.pcserviceselectronics.co.uk/arduino/Ultrasonic/HC-SR04-cct.pdf) </I>
-<br>
+<br><br>
 
 
 <img src="images\SpectrumImage.PNG" alt="Steps 1 and 2"  align="right" width="500"/><br></div> </span>
@@ -43,6 +43,7 @@ Features of the [AdriArduScope.py](AdriArduScope.py) interface include: <img src
 <img src="images\SpectrogramImage.PNG" alt="Spectrogram Image"  align="right" width="500"/><br></div> </span>
   <I><b>Figure 3:</b>Screen shot from Adri/Ardu-Scope when in Spectrogram mode.   Here the center frequency is displayed on the x-axis and the y-axis is the time at each each data set is collected.  The strength of the frequency component is indicated by the color bands (high intensity = blue, low intensity=red). The full range sensitivity is achieve when the AC switch is on as shown.  Here the center frequency of the 40 kHz  [HR-S04 Ultrasonic sensor](https://core-electronics.com.au/tutorials/how-to-use-ultrasonic-sensors.html) is seen shown in blue, will little other spectral components at other frequencies. </I>  
 <br>
+
 <img src="images\CrossCorrelationImage.PNG" alt="Steps 1 and 2"  align="right" width="500"/><br></div> </span>
   <I><b>Figure 4:</b>Screen shot from Adri/Ardu-Scope when in Cross-Correlation mode. Here the data in Figure 3 was stored in memory (after recording it in AC mode), then the Cross-corelation function activated and the absolute option (ABS) set</I>
 <br>
