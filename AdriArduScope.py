@@ -40,7 +40,7 @@ ChannelOptions={'Ch1':1,  'Ch2':2,'Alt Ch1 & 2':3}
 Functions={'OscilloScope':OSCILLOSCOPEI, 'Spectrum' :SPECTRUMI, 'Spectrogram' :SPECTROGRAMI,'Cross-Correlation (Ch1-MEM)':RCH1MEMI,'Cross-Correlation (Ch1-Ch2)':RCH1CH2I}
 
 __author__="Adrian Keating(UWA)"
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 # increase update speed of display loop
 # added BOLD text to selected radio button
 # add new radio button fuction "Spectrogram"
@@ -245,7 +245,8 @@ class scope_button:
             label='',
             valmin=values[0],
             valmax=values[-1],
-            valinit=values[initalindex],valstep=values,
+            valinit=values[initalindex],
+            valstep=1,
             color="red"
         )
         #cbar.set_label("ZLabel", loc='top')
@@ -278,9 +279,9 @@ class scope_button:
         
         Btn=self.Button_dict
         self.ind =Btn['Button'].val
-        self.N=2**self.ind
+        self.N=int(2**self.ind)
         Btn['value']=self.ind
-        #print('update_slider',self.N)
+        #print('update_slider',self.N,type(self.N))
         Btn['value_pos'].set_text(Btn['label']+"("+str(self.N)+")")
         #print(Btn_index,Val_index,Btn['value'])
         return  # return index to button ID
