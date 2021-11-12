@@ -3,10 +3,15 @@
 
  ## QuickStart
   Follow these steps to get up and running with with Adri/Ardu-Scope quickly:
-  * Select the Green CODE button (top right) and download ZIP.  Once downloaded, unzip the files to a folder
-  * Upload the [AdriArduScope.ino](AdriArduScope/AdriArduScope.ino) file to your Arduino.  Use your favorite upload tool, most likely the [Arudino IDE](https://www.arduino.cc/en/software).  Select the type or Arduino - this has been tested on a Nano, Uno and Mega
-  * Close the Arduino IDE/Serial Monitor and with the Arduino plugged in, run [AdriArduScope.py](AdriArduScope.py) under python 3 - the only dependency required is matplotlib.  [Install matplotlib](https://matplotlib.org/stable/users/installing.html) appropriately for either conda or pip versions.  At this time, executables for Windows and MACs have not been produced but may be in the future.
-  * The ports used for Channel 1 and Channel 2 are Arduino analogue input A0 and A1, respectively.  Just touching once of these ports, you should be able to see oscillations on the Adri/Ardu-Scope at 50Hz (Australia) or 60 Hz in other areas of the world.
+  * Select the Green CODE button (top right) and download ZIP.  Once downloaded, unzip the files to a folder.   
+  * Upload the [AdriArduScope.ino](AdriArduScope/AdriArduScope.ino) file to your Arduino.  Use your favorite upload tool, most likely the [Arudino IDE](https://www.arduino.cc/en/software).  Select the correct type of Arduino you have before uploading - this has been tested on a Nano, Uno and Mega.  Also note the serial (COM) port you are using to access the Arduino.  You may need this later.  
+  * Close the Arduino IDE/Serial Monitor and with the Arduino plugged in, run [AdriArduScope.py](AdriArduScope.py) under python 3 - the python code  requires matplotlib, numpy and pyserial. At this time, executables for Windows and MACs have not been produced but may be in the future.  Install the appropriate versions of these either conda or pip managed dependencies:
+    * [Install matplotlib here](https://matplotlib.org/stable/users/installing.html)
+    *[Install numpy here](https://numpy.org/install/)
+    * And either the [pip version of pyserial](https://pypi.org/project/pyserial/) or the [conda version of pyserial](https://anaconda.org/anaconda/pyserial)  
+
+  * If the Adri/Ardu-Scope is the only device connected to the COM/ACM port, then it should find it and start right away.  If you have more than 1 device on the COM/ACM port, then a list will appear in the python console and you need to select the correct port to start the Adri/Ardu-Scope.  Use the same port as identified when you uploaded the code via the [Arudino IDE](https://www.arduino.cc/en/software).
+  * Channel 1 and Channel 2 on the Adri/Ardu-Scope are the Arduino analogue input [A0 and A1](https://www.arduino.cc/en/reference/board), respectively.  Just touching once of these ports, you should be able to see oscillations on the Adri/Ardu-Scope at 50Hz (Australia) or 60 Hz in other areas of the world.
 
   ## Motivation
    <img src="images\UWA-Full-Ver-CMYK3.png" alt="UWA logo"  align="right" width="150"/><br>
@@ -20,7 +25,7 @@ Features of the [AdriArduScope.py](AdriArduScope.py) interface include: <img src
 * Amplitude and offset adjust available from the interface
 * Save data to internal memory
 * Save data to local drive (for post analysis in tools such as excel)
-* Oscilloscope, Spectrum analyser and Cross-correlation analyser - The cross correlation analyser works in two modes: In a screen shot is saved to memory, the cross-correlation of the signal is obtained with the stored memory.  If the scope if setup to acquire data from both channel 1 and channel 2, the cross-correlation can be performed between Channel 1 &2.
+* Oscilloscope, Spectrum analyser, Spectrograph (from V0.2) and Cross-correlation analyser - The cross correlation analyser works in two modes: In a screen shot is saved to memory, the cross-correlation of the signal is obtained with the stored memory.  If the scope if setup to acquire data from both channel 1 and channel 2, the cross-correlation can be performed between Channel 1 &2.
 
 
  ## Screen Shots
@@ -35,9 +40,11 @@ Features of the [AdriArduScope.py](AdriArduScope.py) interface include: <img src
   <I><b>Figure 2:</b>Screen shot from Adri/Ardu-Scope when in Spectrum mode.   Here the center frequency of the 40 kHz  [HR-S04 Ultrasonic sensor](https://core-electronics.com.au/tutorials/how-to-use-ultrasonic-sensors.html) can be seen. </I>  
 <br>
 
-
+<img src="images\SpectrogramImage.PNG" alt="Spectrogram Image"  align="right" width="500"/><br></div> </span>
+  <I><b>Figure 3:</b>Screen shot from Adri/Ardu-Scope when in Spectrogram mode.   Here the center frequency is displayed on the x-axis and the y-axis is the time at each each data set is collected.  The strength of the frequency component is indicated by the color bands (high intensity = blue, low intensity=red). The full range sensitivity is achieve when the AC switch is on as shown.  Here the center frequency of the 40 kHz  [HR-S04 Ultrasonic sensor](https://core-electronics.com.au/tutorials/how-to-use-ultrasonic-sensors.html) is seen shown in blue, will little other spectral components at other frequencies. </I>  
+<br>
 <img src="images\CrossCorrelationImage.PNG" alt="Steps 1 and 2"  align="right" width="500"/><br></div> </span>
-  <I><b>Figure 3:</b>Screen shot from Adri/Ardu-Scope when in Cross-Correlation mode. Here the data in Figure 3 was stored in memory (after recording it in AC mode), then the Cross-corelation function activated and the absolute option (ABS) set</I>
+  <I><b>Figure 4:</b>Screen shot from Adri/Ardu-Scope when in Cross-Correlation mode. Here the data in Figure 3 was stored in memory (after recording it in AC mode), then the Cross-corelation function activated and the absolute option (ABS) set</I>
 <br>
 
 ## Testing:  
@@ -66,3 +73,13 @@ By default the Adri/Ardu-scope is set to send data in binary format (as this all
 ## Issues
   * At high sample rates, only the top 8 bits are captured, so the amplitude resolution is lowered.  At slower data rates, this reverts back to 10 bits.  However in binary transmission I allow of 1024bytes to be sent.  while I have compressed the bits into a continuous bit stream, this still means only 1024*(8/10)~ 819 samples are actually take each scan at lower data rates.  This needs to be fixed
   * Need to work on advanced triggering including 1) manual (single shot) trigger and externally driven triggering
+
+## Changes
+From Version 0.2
+* increase update speed of display loop
+* added BOLD text to selected radio button
+* window prevented from resize (to preserve button positions)
+* added (with considerable effort) a spectrogram to display freq & Tame data
+* added a scale bar (which only appears in spectrum/spectrogram plots) to adjust FFT sample size
+* spectrum plots now in dB
+* one side spectral outputs now scaled correctly and include a hanning window
