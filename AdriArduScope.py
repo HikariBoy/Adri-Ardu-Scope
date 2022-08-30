@@ -410,15 +410,17 @@ class panel:
         self.Amp=6
         self.OffsetSpectrum=2.5
         self.AmpSpectrum=6
-        self.TimebaseMultiples=6.6 # ms
+
+        ############# ALTER TIME BASE STEPS HERE
+        TimebasePower=2
+        self.Timebaseindex0=3  # this is the index to start the scope on use self.Timebaseindex0=3 for TimebasePower=2  or self.Timebaseindex0=1 for TimebasePower=10
+        self.TimebaseMultiples=6.6 # ms for TimebasePower=2  set to 6.6 to get the full sample range, otherwise if you like decases set to for TimebasePower=10 and self.TimebaseMultiples=1
+        ############# END ALTERING TIME BASE STEPS HERE
+        
         self.DelayMultiples=0.01 # ms
         self.TimebaseValue=self.TimebaseMultiples
         TimebaseMin=self.TimebaseMultiples*(2**-3)  # ms
         TimebaseMax=self.TimebaseMultiples*(2**15)  # ms
-        ############# ALTER TIME BASE STEPS HERE
-        TimebasePower=2
-        self.Timebaseindex0=3  # this is the index to start the scope on use self.Timebaseindex0=3 for TimebasePower=2  or self.Timebaseindex0=1 for TimebasePower=10
-        ############# ALTER TIME BASE STEPS HERE
         self.f_index=self.Timebaseindex0
         self.TimebaseIndexMin=int(np.log(2**-3)/np.log(TimebasePower))
         self.TimebaseIndexMax=int(np.log(2**15)/np.log(TimebasePower))
