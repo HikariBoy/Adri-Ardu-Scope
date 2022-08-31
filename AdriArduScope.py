@@ -22,6 +22,7 @@ from scipy.signal import get_window
 import time
 from datetime import datetime
 import sys
+from threading import Thread # library for implementing multi-threaded processing 
 
 VERBOSE_FLAG=False
 OSCILLOSCOPEI=1
@@ -29,6 +30,13 @@ SPECTRUMI=2
 SPECTROGRAMI=3
 RCH1MEMI=4
 RCH1CH2I=5
+FIR1=1
+FIR2=2
+FIR3=3
+IIR1=4
+IIR2=5
+IIR3=6
+
 LINE1COLOR="white" 
 LINE2COLOR="blue"
 SPECTROGRAMCOLOR="RdBu" # avoids green asscoiated with colorblindness
@@ -38,9 +46,12 @@ BUTTONSTATE2COLOR="#E3E3CD" #pyt1b9e77"
 ChannelOptions={'Ch1':1,  'Ch2':2,'Alt Ch1 & 2':3}
 #Functions={'OscilloScope':OSCILLOSCOPEI, r"$\bf{" + 'Spectrum' + "}$":SPECTRUMI,r"$\bf{" + 'Spectrogram' + "}$":SPECTROGRAMI,'Cross-Correlation (Ch1-MEM)':RCH1MEMI,'Cross-Correlation (Ch1-Ch2)':RCH1CH2I}
 Functions={'OscilloScope':OSCILLOSCOPEI, 'Spectrum' :SPECTRUMI, 'Spectrogram' :SPECTROGRAMI,'Cross-Correlation (Ch1-MEM)':RCH1MEMI,'Cross-Correlation (Ch1-Ch2)':RCH1CH2I}
+Filters={'FIR low pass':FIR1, 'FIR High pass' :FIR2, 'FIR Band pass' :FIR3,'IIR Low pass':IIR1,'IIR High pass':IIR2,'IIR Band pass':IIR3}
 
 __author__="Adrian Keating(UWA)"
-__version__ = "0.2.1"
+__version__ = "0.2.5"
+# v 2.4 included threading to avoid screen lockups
+# v2.5 working on FIR/IIR filter addition
 # increase update speed of display loop
 # added BOLD text to selected radio button
 # add new radio button fuction "Spectrogram"
@@ -171,7 +182,9 @@ class scope_button:
         else:
             self.X0+=self.w*2.5
         return index  # return index to button ID
-    
+ 
+    #def update_dblbutton_values(self, cmd,label='Select',values=[1.12,2.123,3.1234,4.12345,5,6,7,8,9,10],initalindex=0):
+        
     def update_pressbutton(self, Btn_index,Val_index):
         
         Btn=self.Button_dict
@@ -374,6 +387,7 @@ class panel:
         self.Y0=.7
         self.w=.04
         self.Scale=50
+        self.run_holdflag=True
         self.layout='vertical' # or 'horizontal'
         self.lableside='top' # or 'left'
         self.colors=[BUTTONSTATE1COLOR, BUTTONSTATE2COLOR ]
@@ -405,6 +419,7 @@ class panel:
         self.Channel=1
         self.CurrentChannel=1
         self.Function=OSCILLOSCOPEI
+        self.Filter=FIR1
         self.Offset=2.5
         self.Amp=6
         self.OffsetSpectrum=2.5
@@ -529,7 +544,7 @@ class panel:
         #plt.draw()
         #self.fig2.canvas.draw_idle() #update_ update_
         self.fig2.canvas.flush_events()
-        plt.pause(.00001)
+        ########################## -> plt.pause(.00001)
         #self.canvas.draw_idle()
         #fig2.canvas.draw()
         return
@@ -616,6 +631,18 @@ class panel:
                Fnradio.labels[ind].set_text( eachFunc  )                  
         if (VERBOSE_FLAG): print(self.Function)
         return
+    
+    def SetFilter(self,label):
+        self.Filter = int(Filters[label])
+        #print(Fnradio.labels)
+        #print(Fnradio.labels[self.Function],type(Fnradio.labels[self.Function]))
+        for ind,eachFunc in enumerate(Filters):
+            if (eachFunc==label):
+               Filterradio.labels[ind].set_text(r"$\bf{" + eachFunc + "}$")
+            else:
+               Filterradio.labels[ind].set_text( eachFunc  )                  
+        if (VERBOSE_FLAG): print(self.Filter)
+        return
     def save_on(self,event):
         self.savenext=True
         return
@@ -645,7 +672,28 @@ class panel:
         self.memory=[]
         self.mem_storeflag = True
         return
+    def run_hold(self,event,btn):
+        self.run_holdflag = not(self.run_holdflag)
+#        print('event',event)
+#        print('event',btn.__dict__)
         
+        #current = violet.cget('bg')
+        #new_colour = 'violet' if current == 'grey' else 'grey'
+        #violet.configure(bg=new_colour
+                     
+        if self.run_holdflag:
+            #btn.config(bg='yellow')
+            btn.color='green'
+            btn.label.set_text('HOLD')
+        else:
+            #btn.config(bg='green')
+            btn.color='yellow'
+            btn.label.set_text('RUN')
+        #btn.draw_idle()
+        #fig.canvas.flush_events()
+       
+        return   
+     
     def xcorr_on(self,event):
         self.xcorrflag = not(self.xcorrflag) # xcorrflag
         if(self.xcorrflag):
@@ -725,7 +773,26 @@ def butter_lowpass_filter(data, cutoff, fs, order):
     y = filtfilt(b, a, data)
     return y
 
-def updateplot(i):
+
+class ThreadTask_to_updateplot:
+    def __init__(self):
+        self._running = True
+        self.getmoredata=False
+        self.receivedvaliddata=False
+        self.Samples=0
+        self.Nbits=0
+        self.duration_micro=0
+        self.dataset=[]
+      
+    def terminate(self):
+        self._running = False
+          
+    def run(self, n):
+        while self._running :
+            #updateplot(0)
+            self.receivedvaliddata,self.Samples,self.Nbits,self.duration_micro,self.dataset=getUSBdata()
+
+def getUSBdata():
     global line1,line2
     global tlast, ylast
     global plt,ax
@@ -735,6 +802,8 @@ def updateplot(i):
     global tseries
     global FreqSamples_slide
     callback=frontpanel  # redefine to reduce code rewrite
+    Nbits=0
+    duration_micro=0
     if(1):
         #print('Time Entry into updateplot',time.monotonic() -tstart)
         proceedflag=True
@@ -787,6 +856,7 @@ def updateplot(i):
                     proceedflag=False
     #print('Time to read header',time.monotonic() -tstart)
     dataset=[]
+    receivedvaliddata=False
     if(proceedflag==True):
         Beyond8=Nbits-8
         shift=2
@@ -822,10 +892,32 @@ def updateplot(i):
                     y=np.array(dataset)
                     oldlocalcrc=int(sum(y)& 255)
                     localcrc=int(sum(data)& 255)
-                    #print(duration_micro,SamplesTaken,Samples,Nbits,Scaled_duration_micro,intcrc)
-                    #print('CRC',crc,intcrc,localcrc,intcrc==localcrc)
-                    #print('Time to read data',time.monotonic() -tstart)
-                    if(intcrc==localcrc):
+                    receivedvaliddata=intcrc==localcrc
+    return receivedvaliddata,Samples,Nbits,duration_micro,dataset
+
+
+
+def updateplot(receivedvaliddata,Samples,Nbits,duration_micro,dataset):
+    global line1,line2
+    global tlast, ylast
+    global plt,ax
+    global spectrumi
+    global tstart
+    global tstart0
+    global tseries
+    global FreqSamples_slide
+    callback=frontpanel  # redefine to reduce code rewrite
+    if(1):
+        #print('Time Entry into updateplot',time.monotonic() -tstart)
+        #receivedvaliddata,Samples,Nbits,duration_micro,dataset=getUSBdata()
+        proceedflag=True
+        retry=0
+        validdata=False
+        Beyond8=Nbits-8
+        shift=2
+        getdata=False
+        if(Samples>0 ):
+                    if(receivedvaliddata and callback.run_holdflag==True):
                         t0=callback.DelayValue+np.linspace(0,duration_micro,len(dataset))/1000
                         fs=1000000/np.mean(np.diff(t0))
                         y0=5*np.array(dataset)/1024 #*Vmax/(2**Nbits)
@@ -900,9 +992,9 @@ def updateplot(i):
                         if (callback.Function==SPECTROGRAMI):  # \;  
                             ax.set_facecolor('xkcd:white')
                             ax.set_title("Adri/Ardu-"+r"$\bf{" + 'Spectrogram' + "}$"+': <ESC> to exit')
-                            ax.set_xlabel('Frequency (Hz)')
+                            ax.set_xlabel('Frequency (kHz)')
                             ax.set_ylabel('Time (s)')
-                            saveheader='Frequency (Hz),log10(|Voltage|)'
+                            saveheader='Frequency (kHz),log10(|Voltage|)'
                             savename='ArduSpectrogram_V'
                             line1.set_ydata([-99]) # reset other lines
                             line1.set_xdata([0])
@@ -1106,7 +1198,415 @@ def updateplot(i):
                            
                         #print('Time after draw',time.monotonic() -tstart)
                         fig.canvas.flush_events()
-                        plt.pause(.00001)
+                        getdata=True
+                        ########################## -> plt.pause(.00001)
+                        #print('Time after FLUSHEVENTS',time.monotonic() -tstart)
+
+                    else:
+                        fig.canvas.draw_idle()
+                        fig.canvas.flush_events()
+                        #print(duration_micro,SamplesTaken,Samples,Nbits,Scaled_duration_micro)
+                        #print('CRC',crc,intcrc,localcrc,oldlocalcrc,intcrc==localcrc)   
+                        heartbeatio.flush()
+                        time.sleep(.1) 
+                        #print("flushed") 
+        if(callback.CurrentChannel!=callback.Channel):
+           #pas:
+           if(callback.Channel==1):
+               pass
+               line2.set_ydata(-99) # remove other line
+                                  #pass
+           if(callback.Channel==2):
+               pass
+               line1.set_ydata(-99) # remove other line
+           callback.CurrentChannel=(callback.CurrentChannel)%2 +1  # toggles the channel
+           setchannel(callback.CurrentChannel)
+    
+    return getdata
+
+                    
+def updateplotxx(i):
+    global line1,line2
+    global tlast, ylast
+    global plt,ax
+    global spectrumi
+    global tstart
+    global tstart0
+    global tseries
+    global FreqSamples_slide
+    callback=frontpanel  # redefine to reduce code rewrite
+    if(1):
+        #print('Time Entry into updateplot',time.monotonic() -tstart)
+        proceedflag=True
+        retry=0
+        validdata=False
+        while(validdata==False and proceedflag==True):
+            #print('GOT A',header)      
+            astart = heartbeatio.read(1) # look for start byte
+            if(len(astart)>0):
+                if(astart[0]==65):
+                    #print('GOT A',header)
+                    zstart = heartbeatio.read(1)
+                    if(len(zstart)>0):
+                        if(zstart[0]==90):
+                            header = heartbeatio.read(10)
+                    #print('header',header)
+                            if(len(header)!=10):
+                                print('Incomplete header read failure only ',len(header),' in length = ',header)
+                                proceedflag=False
+                                heartbeatio.flush()  # MUST flush after a CRC failues in the header
+                                time.sleep(.1) 
+                                #heartbeatserial("X")  # send as bytes  
+                                #time.sleep(.1) 
+                                #heartbeatserial("R1;")  # send as bytes 
+                            else:
+                                SamplesTaken=header[0]*256+header[1]
+                                Samples=header[2]*256+header[3]
+                                duration_micro=header[4]*256*256+header[5]*256+header[6]
+                                Nbits=header[7]
+                                crc=SamplesTaken +duration_micro+Nbits
+                        #headercrc=(crc).to_bytes(2, byteorder='big')
+                                test=header[8]*256+header[9]
+                            #print(test,crc)
+                            #print(headercrc,duration_micro,Samples,Nbits)
+                            #print(crc,header[8],test,crc%(256*256))
+                                if(test==crc%(256*256)):
+                                    validdata=True
+                                else:
+                                    print('HEADER CRC failure',astart+zstart,SamplesTaken,Samples,duration_micro,Nbits,crc,test)
+                                    heartbeatio.flush()  # MUST flush after a CRC failues in the header
+                                    time.sleep(.1) 
+            else:
+                retry=+1
+                if(retry%10==0):
+                    print('No start bit detected after ', retry,' retry(ies)')
+                    heartbeatio.flush()  # MUST flush after a CRC failues in the header
+                    time.sleep(.1)
+                if(retry>100):
+                    print('Aborting Looking for start bit')
+                    proceedflag=False
+    #print('Time to read header',time.monotonic() -tstart)
+    dataset=[]
+    if(proceedflag==True):
+        Beyond8=Nbits-8
+        shift=2
+        
+        #current verions MUST have samples divisible by 8
+        if(Samples>0):
+                data=heartbeatio.read(int(Samples)) #heartbeatio.read(int(Samples*10/8))
+                #print("data=",data)
+                #print('Time to read SAMPLES',time.monotonic() -tstart)
+                if(len(data)!=int(Samples)):
+                    proceedflag=False
+                    print('Incomplete data failure only ',len(data),' bytes but expected ',int(Samples))
+                else:
+                    if(Nbits==10):
+                        core=data[0]<<shift & (2**Nbits -1)
+                        for ind,each in enumerate(data[1:]):
+                            
+                            carry=each>>(8-shift)  # use current value of shift to calculate carry  
+                            if(shift!=0):
+                                #print(ind+1,shift,each,each<<shift,core,carry,carry+core)
+                                dataset.append(carry+core)
+                                #print(ind+1,shift,each,dataset[-1])
+                            shift=(shift+Beyond8)%Nbits
+                            core=each<<shift & (2**Nbits -1)
+    
+                    elif(Nbits==8):
+                            for ind,each in enumerate(data):
+                                dataset.append(each*4) # lower 2 bits have been stripped away
+                    #print('Time to process SAMPLES',time.monotonic() -tstart)
+                    # only CONTINUE if proceedflag=True
+                    crc = heartbeatio.read(1) 
+                    intcrc=int.from_bytes(crc,"little")
+                    y=np.array(dataset)
+                    oldlocalcrc=int(sum(y)& 255)
+                    localcrc=int(sum(data)& 255)
+                    #print(duration_micro,SamplesTaken,Samples,Nbits,Scaled_duration_micro,intcrc)
+                    #print('CRC',crc,intcrc,localcrc,intcrc==localcrc)
+                    #print('Time to read data',time.monotonic() -tstart)
+                    if(intcrc==localcrc):
+                        t0=callback.DelayValue+np.linspace(0,duration_micro,len(dataset))/1000
+                        fs=1000000/np.mean(np.diff(t0))
+                        y0=5*np.array(dataset)/1024 #*Vmax/(2**Nbits)
+                        fixed_duration=callback.TimebaseValue #TimebaseMultiples*len(dataset)*(2**(callback.ind-3))/Nmax # in microsec
+                        t=t0
+                        y=y0
+
+                        if(ac_btn.Button_dict['state']==True):
+                            mean=np.mean(y)
+                            y=(y-mean)
+                            #ax.set_ylim(-3,3)
+                            ax.set_ylim(-frontpanel.Amp/2,frontpanel.Amp/2)
+                        else:
+                            #print(frontpanel.Amp,frontpanel.Offset,frontpanel.Offset-frontpanel.Amp/2,frontpanel.Amp/2+frontpanel.Offset)
+                            ax.set_ylim(frontpanel.Offset-frontpanel.Amp/2,frontpanel.Amp/2+frontpanel.Offset)
+                        
+
+                            
+                        if (callback.Function==OSCILLOSCOPEI):  # \;  
+                            ax.set_facecolor('xkcd:green')
+                            ax.set_title("Adri/Ardu-"+r"$\bf{" + 'Scope' + "}$"+': <ESC> to exit')
+                            ax.set_xlabel('Time (ms)')
+                            ax.set_ylabel('Voltage (V)')
+                            saveheader='time(ms),Voltage (V)'
+                            savename='ArduScope_V'
+                            FreqSamples_slide.hidewidget()
+                            
+                        if (callback.Function==SPECTRUMI):   
+                            ax.set_facecolor('xkcd:green')
+                            ax.set_title('RealTime Adri/Ardu-'+r"$\bf{" + 'Spectrum' + "}$"+': <ESC> to exit')
+                            ax.set_xlabel('Frequency (kHz)')
+                            ax.set_ylabel('20*log10(|Voltage|) dB')
+                            saveheader='Frequency(kHz),20*log10(|Voltage| dB)'
+                            savename='ArduSpectrum_V'
+                            ffty=fourier(y,FreqSamples_slide.N) 
+                            #print(ffty.size)
+                            #print(t[1]-t[0],fixed_duration/len(dataset),fixed_duration/(len(dataset)-1))
+                            f = np.linspace(0, 0.5/(t0[1]-t0[0]), ffty.size//2)
+                            t=f
+                            #t0=f
+                            baseline=(0.5*5/len(dataset))/10
+                            #SCALE by 2 only element >0 to include doubel sided spectra when displaying onlg >f=0
+                            arr=ffty[0:ffty.size//2]
+                            singlesided=np.array([arr[0],*arr[1:]*2]) # unpack, scale by 2, add first element and reassemble
+                            y=20*np.log10(np.abs(singlesided)+baseline)  # add baseline/100 to avoid any ZEROS being logged
+                            #y= (y-np.log10(baseline)) # SUBTRACT the noise FLOOR /np.max(np.abs(y))
+                            y=1*(y) #np.max(y)-y)
+                            y0=y
+                            #print('fmax',t[-1],y[-1],len(y),len(t))
+                            fixed_duration=0.5*1/(callback.TimebaseValue/len(dataset)) #(Scaled_duration_micro/Samples)
+                            FreqSamples_slide.showwidget()
+                            #print('fixed duration',fixed_duration,duration_micro,(t0[1]-t0[0]),ffty.size)
+                        #y=interpolate.splev(t, tck)  
+                        if (callback.Function!=SPECTROGRAMI):
+                            spectrumi=0
+                            line1_ax=line1.axes
+                            n=len(line1_ax.collections)
+                            for ind in range(n): # reverse and use all bust last
+                                line1_ax.collections.pop(0)
+                            #line1_ax=[]
+                            #fig.canvas.draw()
+                            #print('Time after draw',time.monotonic() -tstart)
+                            #fig.canvas.flush_events()
+                            #plt.pause(.00001)
+                            ax.grid(True)
+                            ax.grid(color='k', ls = ':', lw = 1)
+                            tstart0 = time.monotonic()  # ZERO the TIME STAMP    
+                            spectrogramindex=0
+                            tseries=np.array([0])
+ 
+                                    
+                        if (callback.Function==SPECTROGRAMI):  # \;  
+                            ax.set_facecolor('xkcd:white')
+                            ax.set_title("Adri/Ardu-"+r"$\bf{" + 'Spectrogram' + "}$"+': <ESC> to exit')
+                            ax.set_xlabel('Frequency (kHz)')
+                            ax.set_ylabel('Time (s)')
+                            saveheader='Frequency (kHz),log10(|Voltage|)'
+                            savename='ArduSpectrogram_V'
+                            line1.set_ydata([-99]) # reset other lines
+                            line1.set_xdata([0])
+                            line2.set_ydata([-99])
+                            line2.set_xdata([0])
+                            ax.grid(False)
+                            cmap=plt.get_cmap(SPECTROGRAMCOLOR)
+                            MM=256
+                            gradient = np.linspace(-1, 1, MM)
+                            norm = BoundaryNorm(gradient, cmap.N)
+                            ffty=fourier(y,FreqSamples_slide.N) 
+                            baseline=(0.5*5/len(dataset))/10
+                            f = np.linspace(0, 0.5/(t0[1]-t0[0]), ffty.size//2)
+                            t=f
+                            yaxis = np.ones(len(t))*0 #np.sin(x)
+                            #SCALE by 2 to include doubel sided spectra when displaying onlg >f=0
+                            arr=ffty[0:ffty.size//2]
+                            singlesided=np.array([arr[0],*arr[1:]*2]) # unpack, scale by 2, add first element and reassemble
+                            y=20*np.log10(np.abs(singlesided)+baseline)  # add baseline/100 to avoid any ZEROS being logged
+                            #y= (y-np.log10(baseline)) # SUBTRACT the noise FLOOR /np.max(np.abs(y))
+                            y=1*(y) #np.max(y)-y)
+                            y0=y
+                            fixed_duration=0.5*1/(callback.TimebaseValue/len(dataset)) 
+                            currenttime=time.monotonic() -tstart0  # tstart0defined in if (callback.Function!=SPECTROGRAMI):
+                            points = np.array([t, yaxis+currenttime]).T.reshape(-1, 1, 2)
+                            segments = np.concatenate([points[:-1], points[1:]], axis=1)
+                            lc = LineCollection(segments, cmap=cmap, norm=norm)
+                            oneside=np.log(np.abs(singlesided)+baseline)-np.log(baseline)
+                            oneside[oneside < -1]=-1  # nsure no values are less than -1 
+                            colorscale=oneside/np.max(oneside)
+                            newintensities=np.array((colorscale-.5)*2)
+                            lc.set_array(newintensities)
+
+                            line1_ax=line1.axes
+                            line1_ax.apply_aspect()
+                            dpi = fig.dpi
+                            bbox = line1_ax.get_window_extent()
+                            ylim0=ax.set_ylim()
+                            yrange=ylim0[1]-ylim0[0]
+                            x0=bbox.height/(yrange)
+                            #deltay=np.mean(np.diff(tseries))*.9  #yrange/(JJ-2)
+                            #print('tstep',np.mean(np.diff(tseries)),yrange,ylim0[0],ylim0[1],len(line1_ax.collections),tseries[-1],tseries[0])
+                            if(currenttime-tseries[0]<frontpanel.Amp):
+                                #if(len(line1_ax.collections)<JJ):
+                                if(len(tseries)==1):
+                                    x01=currenttime-0
+                                else:
+                                    x01=currenttime-tseries[-1]
+                                WW=1 *x0* 72 / dpi
+                                lc.set_linewidth((WW,))
+                                line1_ax.add_collection(lc)
+  
+                                if( spectrumi==0):
+                                    tseries=np.array([currenttime])
+                                else:
+                                    tseries=np.append(tseries,currenttime)
+                                spectrumi+=1 #*5/JJ
+                            else:
+                                pass
+                                tseries=tseries[1:]
+                                line1_ax.collections.pop(0)
+                                x0=currenttime-tseries[-1]
+                                x0=bbox.height/(yrange) #/(JJ*x0)
+                                WW=x0 * 72 / dpi
+                                lc.set_linewidth((WW,))
+                                line1_ax.add_collection(lc)
+                                tseries=np.append(tseries,currenttime)
+                            #print('tstep',tseries,tseries[-1]-tseries[0])#beforet,tseries[-2]-tseries[0])
+                            FreqSamples_slide.showwidget()
+
+                        if (callback.Function==RCH1MEMI):   
+                            ax.set_facecolor('xkcd:grey')
+                            ax.set_title('RealTime Adri/Ardu-'+r"$\bf{" + 'Correlate(Ch1,MEM)' + "}$"+': <ESC> to exit')
+                            ax.set_xlabel('Lag (ms)')
+                            ax.set_ylabel('Power ($V^{2}$)')
+                            saveheader='Lag (ms),Power ($V^{2}$)'
+                            savename='ArduCrossCorrelateR_1mem_V'
+                            if (callback.memory!=[]):
+                                mean=np.mean(y)
+                                y=(y-mean)
+                                meanstored=np.mean(callback.memory)
+                                yref=(callback.memory-meanstored)
+                                y=np.correlate(y,yref,'full')
+                                yy=np.correlate(yref,yref,'same')
+                                y=y[len(y)//2:len(y)//2+len(y)]/np.max(yy)
+                                #print('auto y', len(y))
+                            FreqSamples_slide.hidewidget()
+
+                        if (callback.Function==RCH1CH2I):   
+                            ax.set_facecolor('xkcd:grey')
+                            ax.set_title('RealTime Adri/Ardu-'+r"$\bf{" + 'Correlate(Ch1,Ch2)' + "}$"+': <ESC> to exit')
+                            ax.set_xlabel('Lag (ms)')
+                            ax.set_ylabel('Power ($V^{2}$)')
+                            saveheader='Lag (ms),Power ($V^{2}$)'
+                            savename='ArduCrossCorrelateR_12_V'
+                            #callback.CurrentChannel=3
+                            if ((callback.CurrentChannel & 2) ==2):
+                                # both channels must be active, only update when 2nd grab is obtained
+                                mean=np.mean(y)
+                                y1=(y-mean)
+                                y2=ylast-np.mean(ylast)
+                                #meanstored=np.mean(callback.memory)
+                                #yref=(callback.memory-meanstored)
+                                Rxy=np.correlate(y1,y2,'full')
+                                yy1=np.max(np.correlate(y1,y1,'same'))
+                                yy2=np.max(np.correlate(y2,y2,'same'))
+                                Rxy=np.abs(Rxy[len(Rxy)//2-len(y1)//2:len(Rxy)//2+len(y1)//2]) #/np.max([yy1,yy2])
+
+                            FreqSamples_slide.hidewidget()
+                        if(abs_btn.Button_dict['state']==True):
+                            ylimits=ax.set_ylim()
+                            ax.set_ylim(0,ylimits[1])
+                            y=abs(y)
+                                
+                        if(1):
+                            if(callback.xcorrflag==True):
+                                if (callback.memory!=[]):
+                                    y=np.correlate(y,callback.memory,'same')
+                                    yy=np.correlate(callback.memory,callback.memory,'same')
+                                    y=y/np.max(yy)
+                                    
+
+                                #y = butter_lowpass_filter(y, 1000, fs, 2)
+                            if(callback.logflag):
+                                callback.absflag=False
+                                callback.abs_on(1) # ensure ABS is on
+                                ylimits=ax.set_ylim()
+                                ax.set_ylim(0,ylimits[1])
+                                for indexy in range(len(y)):
+                                    if y[indexy]==0:
+                                        y[indexy]=0.5/1024
+                                y=np.abs(np.log(np.abs(y)))                            
+                            if(callback.savenext):
+                                #wb = Workbook(write_only=True)
+                                #ws = wb.create_sheet()
+                                i=1
+                                data=[]
+                                for index in range(len(t)):
+                                    data.append([t[index],y[index]])
+                                filenametouse=nextfilename(savename+'.csv')
+                                np.savetxt(filenametouse,data,fmt='%f', delimiter=',',header=saveheader)
+                                callback.savenext=False
+                            if(callback.mem_storeflag==True):
+                                callback.memory=y
+                                callback.mem_storeflag=False
+
+
+
+                        if (callback.Function==OSCILLOSCOPEI): 
+                            ax.set_xlim(callback.DelayValue,callback.DelayValue+fixed_duration)
+                        elif (callback.Function==SPECTRUMI):
+                            ax.set_xlim(0,min(75,fixed_duration)) # max frequency 75kHz
+                            ax.set_ylim(20*np.log10(0.5*5/Nmax),20*np.log10(frontpanel.Amp))
+                        elif (callback.Function==SPECTROGRAMI):
+                            ax.set_xlim(0,min(75,fixed_duration))
+                            ax.set_ylim(tseries[0],max(tseries[-1], frontpanel.Amp))
+                        elif (callback.Function==RCH1MEMI):
+                            ax.set_xlim(callback.DelayValue,callback.DelayValue+fixed_duration)        
+                        elif (callback.Function==RCH1CH2I):
+                            ax.set_xlim(callback.DelayValue,callback.DelayValue+fixed_duration)
+
+                        if ((callback.CurrentChannel &1)==1):                           
+                            tlast=t;
+                            ylast=y;
+                        if (callback.Function==RCH1CH2I):
+                            if ((callback.CurrentChannel & 2) ==2):
+                                line1.set_ydata(Rxy)
+                                line1.set_xdata(t)
+                                line2.set_ydata([-99])
+                                line2.set_xdata([0])
+                                line1.set_color(LINE1COLOR)
+                                fig.canvas.draw()
+                        else:
+                            if ((callback.CurrentChannel &1)==1):                           
+                                if(callback.Function!=SPECTROGRAMI):
+                                    line1.set_ydata(y)
+                                    line1.set_xdata(t)
+                                    line1.set_color(LINE1COLOR)
+                                    tlast=t;
+                                    ylast=y;
+                                #plt.figure(3)
+                                
+                                if ((callback.Channel) !=3):
+                                    # only redraw if no 2nd line to redraw
+                                    #print('Time before draw',time.monotonic() -tstart)
+                                    pass
+                                    #fig.canvas.draw() # this is VERY SLOW ~ 0.1 sec !!!
+                                    #print('Time after DRAW',time.monotonic() -tstart)
+                                
+                            if ((callback.CurrentChannel & 2) ==2):                           
+                                line2.set_ydata(y)   
+                                line2.set_xdata(t)
+                                line2.set_color(LINE2COLOR)
+                                
+                                line1.set_ydata([-99])
+                                if ((callback.Channel) ==3):
+                                    line1.set_ydata(ylast)
+                                    line1.set_xdata(tlast)
+                                    line1.set_color(LINE1COLOR)
+                                fig.canvas.draw()
+                           
+                        #print('Time after draw',time.monotonic() -tstart)
+                        fig.canvas.flush_events()
+                        ########################## -> plt.pause(.00001)
                         #print('Time after FLUSHEVENTS',time.monotonic() -tstart)
 
                     else:
@@ -1255,7 +1755,7 @@ if __name__ == "__main__":
         tlast=[];
         ylast=[];
 
-        fig, ax = plt.subplots(figsize=(10,4))
+        fig, ax = plt.subplots(figsize=(12,4))
         win = fig.canvas.window()
         #win.setFixedSize(win.size())
         #fig.canvas.setFixedSize(15,6)
@@ -1264,9 +1764,9 @@ if __name__ == "__main__":
         ax.grid(color='k', ls = ':', lw = 1)
         ax.set_facecolor('xkcd:green') #
         scrnY=0.95
-        scrnX=0.65
+        scrnX=0.52
         Y0=0.15
-        X0=0.07
+        X0=0.055
         plt.subplots_adjust(bottom=Y0,top=scrnY,left=X0,right=scrnX)
         plt.title('RealTime Adri/Ardu-Scope: <ESC> to exit')
         plt.xlabel('Time (ms)')
@@ -1290,10 +1790,10 @@ if __name__ == "__main__":
 
         i=0              
         fn=lambda xx: (print("Click ING .....!"),print('state=',xx))
-        frontpanel.X0=.6
+        frontpanel.X0=scrnX-.2
         frontpanel.Y0=.9
         Amp_btn=scope_button()
-        Amp_btn.X0=.67
+        Amp_btn.X0=scrnX+.01
         Amp_btn.Y0=.8
         kk=30
         Avalues=[frontpanel.Amp*(1-(i/kk)) for i in range(kk)]
@@ -1337,6 +1837,22 @@ if __name__ == "__main__":
         ax_separator= plt.axes([Xc, Yc, W, H/20], facecolor=axcolor,frame_on=False)
         ax_separator.set_frame_on(False)
         Button(ax_separator,label='-----------------------')
+
+        Xc=scrnX+0+.32
+        #Yc=scrnY-H*.8
+        Filterax = plt.axes([Xc, Yc, W, H], facecolor=axcolor,frame_on=False)
+        Filterradio = RadioButtons(Filterax, Filters.keys())
+        Filterradio.on_clicked(frontpanel.SetFilter) 
+        Filterradio.labels[0].set_text(r"$\bf{" + getkeyviaindex(Filters,FIR1) + "}$")
+        #H=H*3/4
+        ax_separator= plt.axes([Xc, Yc, W, H/20], facecolor=axcolor,frame_on=False)
+        ax_separator.set_frame_on(False)
+        Button(ax_separator,label='-----------------------')
+        
+
+        
+        Xc=scrnX+0+.07
+        
         W=.1
         H=len(ChannelOptions)*scrnY/12
         Yc=scrnY-H*2-H/5
@@ -1349,6 +1865,7 @@ if __name__ == "__main__":
         ax_separator= plt.axes([Xc, Yc, W, H/20], facecolor=axcolor,frame_on=False)
         ax_separator.set_frame_on(False)
         Button(ax_separator,label='----------------')
+        
         
         Time_btn=scope_button()
         Time_btn.X0=Xc+.05
@@ -1377,15 +1894,30 @@ if __name__ == "__main__":
         bttn2=Button(btnax2,label='About')
         bttn2.on_clicked(lambda event:frontpanel.about())
         btnax.set_frame_on(False)
+        
+        axcolor = 'y'
+        run_hold = plt.axes([.89-.15, .5, .1,.1], facecolor=axcolor)
+        run_hold_Btn = Button(run_hold,label='HOLD', color='green') #, hovercolor='grey' )
+        run_hold_Btn.on_clicked(lambda e,btn=run_hold_Btn: frontpanel.run_hold(e,btn))
+        
+        c = ThreadTask_to_updateplot()
+        updatethread = Thread(target = c.run, args =(10, ))
+        #updatethread = Thread(target = updateplot, args =(1, ))
+        updatethread.start() #updateplot(i)
         while(exitflag==False):
             tstart = time.monotonic()
+            #print('ticks=',ax.get_xticks())
             if(frontpanel.shwoabout==False):
-                updateplot(i)
-                heartbeatio.write('R1;'.encode())  # send as bytes
+                
+                getdata=updateplot(c.receivedvaliddata,c.Samples,c.Nbits,c.duration_micro,c.dataset)
+                if (getdata==True): heartbeatio.write('R1;'.encode())  # send as bytes
+            #else:
+            #    c.terminate() 
                 #fig.canvas.draw_idle()
             #time.sleep(.01)
             i+=1
         #input()
+        #c.terminate() 
         gracefulexit()     
         flushheartbeatserial()  # remove any unread data
         heartbeatstop()
