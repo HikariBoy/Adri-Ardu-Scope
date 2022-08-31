@@ -40,8 +40,7 @@ ChannelOptions={'Ch1':1,  'Ch2':2,'Alt Ch1 & 2':3}
 Functions={'OscilloScope':OSCILLOSCOPEI, 'Spectrum' :SPECTRUMI, 'Spectrogram' :SPECTROGRAMI,'Cross-Correlation (Ch1-MEM)':RCH1MEMI,'Cross-Correlation (Ch1-Ch2)':RCH1CH2I}
 
 __author__="Adrian Keating(UWA)"
-__version__ = "0.2.2"
-# added option to change the timebase steps
+__version__ = "0.2.1"
 # increase update speed of display loop
 # added BOLD text to selected radio button
 # add new radio button fuction "Spectrogram"
@@ -392,7 +391,7 @@ class panel:
         
         self.ind = 3
         #self.ch=1
-
+        self.f_index=3
         self.N=1024
         self.text=str(self.N)
         self.ac=False
@@ -410,23 +409,13 @@ class panel:
         self.Amp=6
         self.OffsetSpectrum=2.5
         self.AmpSpectrum=6
-
-        ############# ALTER TIME BASE STEPS HERE
-        TimebasePower=2
-        self.Timebaseindex0=3  # this is the index to start the scope on use self.Timebaseindex0=3 for TimebasePower=2  or self.Timebaseindex0=1 for TimebasePower=10
-        self.TimebaseMultiples=6.6 # ms for TimebasePower=2  set to 6.6 to get the full sample range, otherwise if you like decases set to for TimebasePower=10 and self.TimebaseMultiples=1
-        ############# END ALTERING TIME BASE STEPS HERE
-        
+        self.TimebaseMultiples=6.6 # ms
         self.DelayMultiples=0.01 # ms
         self.TimebaseValue=self.TimebaseMultiples
-        TimebaseMin=self.TimebaseMultiples*(2**-3)  # ms
-        TimebaseMax=self.TimebaseMultiples*(2**15)  # ms
-        self.f_index=self.Timebaseindex0
-        self.TimebaseIndexMin=int(np.log(2**-3)/np.log(TimebasePower))
-        self.TimebaseIndexMax=int(np.log(2**15)/np.log(TimebasePower))
-        self.ValidTimebaseValue=[(TimebasePower**i)*self.TimebaseMultiples for i in range(self.TimebaseIndexMin,self.TimebaseIndexMax)]
         self.DelayValue=0
-        print('self.ValidTimebaseValue', self.ValidTimebaseValue)
+        self.Timebaseindex0=3
+        self.ValidTimebaseValue=[(2**i)*self.TimebaseMultiples for i in range(-1*self.Timebaseindex0,15)]
+        #print(self.ValidTimebaseValue)
         self.shwoabout=False
         #self.Setup_about()
         self.fig2=None
@@ -598,7 +587,7 @@ class panel:
 
     def nextf(self ):
         self.f_index += 1
-        self.f_index = max(min(self.f_index,self.TimebaseIndexMax),self.TimebaseIndexMin)
+        self.f_index = max(min(self.f_index,15),3)
         string='f'+str(self.f_index)+';'
         if (VERBOSE_FLAG): print(string,self.f_index)
         heartbeatserial(string)  # send as bytes
@@ -608,7 +597,7 @@ class panel:
 
     def prevf(self ):
         self.f_index -= 1
-        self.f_index = max(min(self.f_index,self.TimebaseIndexMax),self.TimebaseIndexMin)
+        self.f_index = max(min(self.f_index,15),3)
         string='f'+str(self.f_index)+';'
         if (VERBOSE_FLAG): print(string,self.f_index)
         heartbeatserial(string)  # send as bytes
@@ -931,7 +920,6 @@ def updateplot(i):
                             yaxis = np.ones(len(t))*0 #np.sin(x)
                             #SCALE by 2 to include doubel sided spectra when displaying onlg >f=0
                             arr=ffty[0:ffty.size//2]
-                            
                             singlesided=np.array([arr[0],*arr[1:]*2]) # unpack, scale by 2, add first element and reassemble
                             y=20*np.log10(np.abs(singlesided)+baseline)  # add baseline/100 to avoid any ZEROS being logged
                             #y= (y-np.log10(baseline)) # SUBTRACT the noise FLOOR /np.max(np.abs(y))
@@ -963,9 +951,7 @@ def updateplot(i):
                                     x01=currenttime-0
                                 else:
                                     x01=currenttime-tseries[-1]
-                                Nslices=max(np.floor(yrange/x01),len(tseries)-2)
-                                #WW=(yrange/Nslices)*x0* 72 / dpi
-                                WW=1*(bbox.height/Nslices)* 72 / dpi
+                                WW=1 *x0* 72 / dpi
                                 lc.set_linewidth((WW,))
                                 line1_ax.add_collection(lc)
   
@@ -976,22 +962,15 @@ def updateplot(i):
                                 spectrumi+=1 #*5/JJ
                             else:
                                 pass
-
-                                #ii=0
-                                #while(currenttime-tseries[0]>frontpanel.Amp):
+                                tseries=tseries[1:]
                                 line1_ax.collections.pop(0)
-                                tseries=tseries[1:]  # remove the entry
-
                                 x0=currenttime-tseries[-1]
                                 x0=bbox.height/(yrange) #/(JJ*x0)
-                                Nslices=(len(tseries)-2)
-                                #WW=(yrange/Nslices)*x0* 72 / dpi
-                                WW=1*(bbox.height/Nslices)* 72 / dpi
+                                WW=x0 * 72 / dpi
                                 lc.set_linewidth((WW,))
                                 line1_ax.add_collection(lc)
                                 tseries=np.append(tseries,currenttime)
                             #print('tstep',tseries,tseries[-1]-tseries[0])#beforet,tseries[-2]-tseries[0])
-                            print('arr',len(arr),len(tseries),bbox.height,tseries[0],tseries[-1])
                             FreqSamples_slide.showwidget()
 
                         if (callback.Function==RCH1MEMI):   
@@ -1001,7 +980,7 @@ def updateplot(i):
                             ax.set_ylabel('Power ($V^{2}$)')
                             saveheader='Lag (ms),Power ($V^{2}$)'
                             savename='ArduCrossCorrelateR_1mem_V'
-                            if (len(callback.memory)!=0):
+                            if (callback.memory!=[]):
                                 mean=np.mean(y)
                                 y=(y-mean)
                                 meanstored=np.mean(callback.memory)
@@ -1079,7 +1058,7 @@ def updateplot(i):
                             ax.set_ylim(20*np.log10(0.5*5/Nmax),20*np.log10(frontpanel.Amp))
                         elif (callback.Function==SPECTROGRAMI):
                             ax.set_xlim(0,min(75,fixed_duration))
-                            ax.set_ylim(tseries[0],min(tseries[-1], frontpanel.Amp))
+                            ax.set_ylim(tseries[0],max(tseries[-1], frontpanel.Amp))
                         elif (callback.Function==RCH1MEMI):
                             ax.set_xlim(callback.DelayValue,callback.DelayValue+fixed_duration)        
                         elif (callback.Function==RCH1CH2I):
@@ -1280,8 +1259,7 @@ if __name__ == "__main__":
         win = fig.canvas.window()
         #win.setFixedSize(win.size())
         #fig.canvas.setFixedSize(15,6)
-        #fig.canvas.set_window_title("Adri/ArduScope (Version: "+str(__version__)+") - by Dr. Adrian Keating at The University of Western Australia")
-        fig.canvas.manager.set_window_title("Adri/ArduScope (Version: "+str(__version__)+") - by Dr. Adrian Keating at The University of Western Australia")
+        fig.canvas.set_window_title("Adri/ArduScope (Version: "+str(__version__)+") - by Dr. Adrian Keating at The University of Western Australia")
         ax.grid(True)
         ax.grid(color='k', ls = ':', lw = 1)
         ax.set_facecolor('xkcd:green') #
@@ -1376,7 +1354,7 @@ if __name__ == "__main__":
         Time_btn.X0=Xc+.05
         Time_btn.Y0=Yc-H/2
         Tvalues=frontpanel.ValidTimebaseValue #[frontpanel.TimebaseMultiples*(i+1) for i in range(10)]
-        Time_btn.add_dblbutton(frontpanel.Timebase,'Timebase (ms)',values=Tvalues,initalindex=frontpanel.Timebaseindex0)
+        Time_btn.add_dblbutton(frontpanel.Timebase,'Timebase (ms)',values=Tvalues,initalindex=3)
         Delay_btn=scope_button()
         Delay_btn.X0=Time_btn.X0
         Delay_btn.Y0=Time_btn.Y0
